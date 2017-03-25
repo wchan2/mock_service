@@ -49,6 +49,9 @@ func (m *MockService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (m *MockService) CreateMockEndpoint(endpoint MockEndpoint) {
 	m.Lock()
+	if _, ok := m.mockEndpoints[endpoint.Method]; !ok {
+		m.mockEndpoints[endpoint.Method] = map[string]MockEndpoint{}
+	}
 	m.mockEndpoints[endpoint.Method][endpoint.Endpoint] = endpoint
 	m.Unlock()
 }
@@ -62,23 +65,29 @@ func (m *MockService) LookupEndpoint(method, path string) (*MockEndpoint, error)
 }
 
 func (m *MockService) serveRegistrationHTTP(w http.ResponseWriter, req *http.Request) {
+	if req.Body == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Registering an endpoint requires a payload")
+		log.Printf("Registration HTTP received empty payload")
+		return
+	}
 	reqPayload, err := ioutil.ReadAll(req.Body)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "Unable to read from payload due to: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("Unable to read from payload due to: %s", err)
 		return
 	}
 	endpointRequest := MockEndpoint{}
 	if err := json.Unmarshal(reqPayload, &endpointRequest); err != nil {
-		log.Printf("Unable to Unmarshal request body %s: %s", reqPayload, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "Unable to Unmarshal request body %s: %s", reqPayload, err)
+		log.Printf("Unable to Unmarshal request body %s: %s", reqPayload, err)
 		return
 	}
 
 	m.CreateMockEndpoint(endpointRequest)
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (m *MockService) serveMockHTTP(w http.ResponseWriter, req *http.Request) {
