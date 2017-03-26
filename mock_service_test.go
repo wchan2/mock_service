@@ -96,3 +96,30 @@ func TestServeMockHTTP(t *testing.T) {
 		t.Errorf(`Expected "%s" response body but got "%s"`, "hello world", testRecorder.Body.String())
 	}
 }
+
+func TestPreloadEndpointsFromConf(t *testing.T){
+    service := mock_service.New("/mocks")
+    service.PreloadEndpointsFromConf("test/test_mocker.json")
+	testReq, err := http.NewRequest("GET", "/mock/conf_test1", nil)
+	if err != nil {
+		t.Fatalf("Expected error to create new request ot be nil but got %s", err)
+	}
+	testRecorder := httptest.NewRecorder()
+	service.ServeHTTP(testRecorder, testReq)
+    if testRecorder.Code != http.StatusOK {
+		t.Errorf("Expected %d status but got %d when sending a mock request", http.StatusOK, testRecorder.Code)
+    }
+    if testRecorder.Body.String() != "Configurable mocker" {
+		t.Errorf(`Expected "%s" response body but got "%s"`, "Configurable mocker", testRecorder.Body.String())
+    }
+	testRecorder = httptest.NewRecorder()
+	testReq, err = http.NewRequest("GET", "/mock/conf_test2", nil)
+	service.ServeHTTP(testRecorder, testReq)
+    if testRecorder.Code != http.StatusOK {
+		t.Errorf("Expected %d status but got %d when sending a mock request", http.StatusOK, testRecorder.Code)
+    }
+    if testRecorder.Body.String() != "Configurable mocker" {
+		t.Errorf(`Expected "%s" response body but got "%s"`, "Configurable mocker", testRecorder.Body.String())
+    }
+
+}

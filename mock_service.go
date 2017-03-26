@@ -50,7 +50,7 @@ func (m *MockService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	m.serveMockHTTP(w, req)
 }
 
-func (m *MockService) PreloadMockersFromConf(confFilePath string) (error, bool){
+func (m *MockService) PreloadEndpointsFromConf(confFilePath string) (error, bool){
     if  len(m.mockCreatorEndpoint) < 1 {
         return  ErrCreatorNotExist, false
     }
