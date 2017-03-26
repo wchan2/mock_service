@@ -16,7 +16,6 @@ type MockService struct {
 	createMockEndpoint string
 	mockEndpoints      map[string]map[string]MockEndpoint
 
-	sync.Mutex
 }
 
 type MockEndpoint struct {
@@ -25,6 +24,7 @@ type MockEndpoint struct {
 	StatusCode      int               `json:"httpStatusCode"`
 	ResponseBody    string            `json:"responseBody"`
 	ResponseHeaders map[string]string `json:"responseHeaders"`
+	sync.Mutex
 
 	// TODO:
 	// AcceptHeaders   map[string]string `json:"responseHeaders"`
@@ -48,12 +48,12 @@ func (m *MockService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (m *MockService) CreateMockEndpoint(endpoint MockEndpoint) {
-	m.Lock()
 	if _, ok := m.mockEndpoints[endpoint.Method]; !ok {
 		m.mockEndpoints[endpoint.Method] = map[string]MockEndpoint{}
 	}
+	m.mockEndpoints[endpoint.Method][endpoint.Endpoint].Lock()
 	m.mockEndpoints[endpoint.Method][endpoint.Endpoint] = endpoint
-	m.Unlock()
+	m.mockEndpoints[endpoint.Method][endpoint.Endpoint].Unlock()
 }
 
 func (m *MockService) LookupEndpoint(method, path string) (*MockEndpoint, error) {
