@@ -74,10 +74,10 @@ func (m *MockService) CreateMockEndpoint(endpoint MockEndpoint) {
 		log.Fatal("Ignore the overwriting for the mock creator endpoint.")
         return
     }
+	m.Lock()
 	if _, ok := m.mockedEndpoints[endpoint.Method]; !ok {
 		m.mockedEndpoints[endpoint.Method] = map[string]MockEndpoint{}
 	}
-	m.Lock()
 	m.mockedEndpoints[endpoint.Method][endpoint.Endpoint] = endpoint
 	m.Unlock()
 }
