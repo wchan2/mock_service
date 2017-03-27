@@ -24,11 +24,11 @@ type MockService struct {
 }
 
 type MockEndpoint struct {
-    Method          string            `json:"method" yaml:"method"`
-    Endpoint        string            `json:"endpoint" yaml:"endpoint"`
-    StatusCode      int               `json:"httpStatusCode" yaml:"httpStatusCode"`
-    ResponseBody    string            `json:"responseBody" yaml:"responseBody"`
-    ResponseHeaders map[string]string `json:"responseHeaders" yaml:"responseHeaders"`
+	Method          string            `json:"method" yaml:"method"`
+	Endpoint        string            `json:"endpoint" yaml:"endpoint"`
+	StatusCode      int               `json:"httpStatusCode" yaml:"httpStatusCode"`
+	ResponseBody    string            `json:"responseBody" yaml:"responseBody"`
+	ResponseHeaders map[string]string `json:"responseHeaders" yaml:"responseHeaders"`
 
 	// TODO:
 	// AcceptHeaders   map[string]string `json:"responseHeaders"`
@@ -112,7 +112,7 @@ func (m *MockService) PreloadEndpointsFromConf(conf *MockServiceConf) (error, bo
 		log.Fatal("Unable to handle the undefined conf file type: %s", conf.Type)
 		return ErrUnknownConfType, false
 	}
-    fmt.Println("%v", series)
+	fmt.Println("%v", series)
 	for _, endpoint := range series {
 		m.CreateMockEndpoint(endpoint)
 	}

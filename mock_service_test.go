@@ -1,17 +1,17 @@
 package mock_service_test
 
 import (
+	"github.com/wchan2/mock_service"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"github.com/wchan2/mock_service"
 )
 
 const successfulRegistrationRequest = `{"method": "GET", "endpoint": "/mock/test", "httpStatusCode": 203, "responseBody": "hello world", "responseHeaders": {"Foo": "Bar"}}`
 
 func TestServeEndpointRegistration_NilReqBody(t *testing.T) {
-    conf := mock_service.NewConf("","")
+	conf := mock_service.NewConf("", "")
 	service := mock_service.New("/mocks", conf)
 	req, err := http.NewRequest(http.MethodPost, "/mocks", nil)
 	if err != nil {
@@ -34,7 +34,7 @@ func TestServeEndpointRegistration_NilReqBody(t *testing.T) {
 }
 
 func TestServeEndpointRegistration_InvalidJSONReqBody(t *testing.T) {
-    conf := mock_service.NewConf("","")
+	conf := mock_service.NewConf("", "")
 	service := mock_service.New("/mocks", conf)
 	req, err := http.NewRequest(http.MethodPost, "/mocks", strings.NewReader(""))
 	if err != nil {
@@ -57,7 +57,7 @@ func TestServeEndpointRegistration_InvalidJSONReqBody(t *testing.T) {
 }
 
 func TestServeEndpointRegistration_Success(t *testing.T) {
-    conf := mock_service.NewConf("","")
+	conf := mock_service.NewConf("", "")
 	service := mock_service.New("/mocks", conf)
 	req, err := http.NewRequest(http.MethodPost, "/mocks", strings.NewReader(successfulRegistrationRequest))
 	if err != nil {
@@ -71,7 +71,7 @@ func TestServeEndpointRegistration_Success(t *testing.T) {
 	}
 }
 func TestServeMockHTTP(t *testing.T) {
-    conf := mock_service.NewConf("","")
+	conf := mock_service.NewConf("", "")
 	service := mock_service.New("/mocks", conf)
 	req, err := http.NewRequest(http.MethodPost, "/mocks", strings.NewReader(successfulRegistrationRequest))
 	if err != nil {
@@ -100,54 +100,54 @@ func TestServeMockHTTP(t *testing.T) {
 	}
 }
 
-func TestPreloadEndpointsFromJsonConf(t *testing.T){
-    conf := mock_service.NewConf("test/test_mocker.json","JSON")
-    service := mock_service.New("/mocks", conf)
+func TestPreloadEndpointsFromJsonConf(t *testing.T) {
+	conf := mock_service.NewConf("test/test_mocker.json", "JSON")
+	service := mock_service.New("/mocks", conf)
 	testReq, err := http.NewRequest("GET", "/mock/conf_test1", nil)
 	if err != nil {
 		t.Fatalf("Expected error to create new request ot be nil but got %s", err)
 	}
 	testRecorder := httptest.NewRecorder()
 	service.ServeHTTP(testRecorder, testReq)
-    if testRecorder.Code != http.StatusOK {
+	if testRecorder.Code != http.StatusOK {
 		t.Errorf("Expected %d status but got %d when sending a mock request", http.StatusOK, testRecorder.Code)
-    }
-    if testRecorder.Body.String() != "Configurable mocker" {
+	}
+	if testRecorder.Body.String() != "Configurable mocker" {
 		t.Errorf(`Expected "%s" response body but got "%s"`, "Configurable mocker", testRecorder.Body.String())
-    }
+	}
 	testRecorder = httptest.NewRecorder()
 	testReq, err = http.NewRequest("GET", "/mock/conf_test2", nil)
 	service.ServeHTTP(testRecorder, testReq)
-    if testRecorder.Code != http.StatusOK {
+	if testRecorder.Code != http.StatusOK {
 		t.Errorf("Expected %d status but got %d when sending a mock request", http.StatusOK, testRecorder.Code)
-    }
-    if testRecorder.Body.String() != "Configurable mocker" {
+	}
+	if testRecorder.Body.String() != "Configurable mocker" {
 		t.Errorf(`Expected "%s" response body but got "%s"`, "Configurable mocker", testRecorder.Body.String())
-    }
+	}
 }
 
-func TestPreloadEndpointsFromYamlConf(t *testing.T){
-    conf := mock_service.NewConf("test/test_mocker.yaml","YAML")
-    service := mock_service.New("/mocks", conf)
+func TestPreloadEndpointsFromYamlConf(t *testing.T) {
+	conf := mock_service.NewConf("test/test_mocker.yaml", "YAML")
+	service := mock_service.New("/mocks", conf)
 	testReq, err := http.NewRequest("GET", "/mock/conf_test1", nil)
 	if err != nil {
 		t.Fatalf("Expected error to create new request ot be nil but got %s", err)
 	}
 	testRecorder := httptest.NewRecorder()
 	service.ServeHTTP(testRecorder, testReq)
-    if testRecorder.Code != http.StatusOK {
+	if testRecorder.Code != http.StatusOK {
 		t.Errorf("Expected %d status but got %d when sending a mock request", http.StatusOK, testRecorder.Code)
-    }
-    if testRecorder.Body.String() != "Configurable mocker" {
+	}
+	if testRecorder.Body.String() != "Configurable mocker" {
 		t.Errorf(`Expected "%s" response body but got "%s"`, "Configurable mocker", testRecorder.Body.String())
-    }
+	}
 	testRecorder = httptest.NewRecorder()
 	testReq, err = http.NewRequest("GET", "/mock/conf_test2", nil)
 	service.ServeHTTP(testRecorder, testReq)
-    if testRecorder.Code != http.StatusOK {
+	if testRecorder.Code != http.StatusOK {
 		t.Errorf("Expected %d status but got %d when sending a mock request", http.StatusOK, testRecorder.Code)
-    }
-    if testRecorder.Body.String() != "Configurable mocker" {
+	}
+	if testRecorder.Body.String() != "Configurable mocker" {
 		t.Errorf(`Expected "%s" response body but got "%s"`, "Configurable mocker", testRecorder.Body.String())
-    }
+	}
 }
