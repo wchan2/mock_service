@@ -12,7 +12,8 @@ import (
 const successfulRegistrationRequest = `{"method": "GET", "endpoint": "/mock/test", "httpStatusCode": 203, "responseBody": "hello world", "responseHeaders": {"Foo": "Bar"}}`
 
 func TestServeEndpointRegistration_NilReqBody(t *testing.T) {
-	service := mock_service.New("/mocks")
+    conf := mock_service.NewConf("","")
+	service := mock_service.New("/mocks", conf)
 	req, err := http.NewRequest(http.MethodPost, "/mocks", nil)
 	if err != nil {
 		t.Fatalf("Expected error to create new request to be nil but got %s", err)
@@ -34,7 +35,8 @@ func TestServeEndpointRegistration_NilReqBody(t *testing.T) {
 }
 
 func TestServeEndpointRegistration_InvalidJSONReqBody(t *testing.T) {
-	service := mock_service.New("/mocks")
+    conf := mock_service.NewConf("","")
+	service := mock_service.New("/mocks", conf)
 	req, err := http.NewRequest(http.MethodPost, "/mocks", strings.NewReader(""))
 	if err != nil {
 		t.Fatalf("Expected error to create new request to be nil but got %s", err)
@@ -56,7 +58,8 @@ func TestServeEndpointRegistration_InvalidJSONReqBody(t *testing.T) {
 }
 
 func TestServeEndpointRegistration_Success(t *testing.T) {
-	service := mock_service.New("/mocks")
+    conf := mock_service.NewConf("","")
+	service := mock_service.New("/mocks", conf)
 	req, err := http.NewRequest(http.MethodPost, "/mocks", strings.NewReader(successfulRegistrationRequest))
 	if err != nil {
 		t.Fatalf("Expected error to create new request to be nil but got %s", err)
@@ -69,7 +72,8 @@ func TestServeEndpointRegistration_Success(t *testing.T) {
 	}
 }
 func TestServeMockHTTP(t *testing.T) {
-	service := mock_service.New("/mocks")
+    conf := mock_service.NewConf("","")
+	service := mock_service.New("/mocks", conf)
 	req, err := http.NewRequest(http.MethodPost, "/mocks", strings.NewReader(successfulRegistrationRequest))
 	if err != nil {
 		t.Fatalf("Expected error to create new request to be nil but got %s", err)
@@ -98,8 +102,8 @@ func TestServeMockHTTP(t *testing.T) {
 }
 
 func TestPreloadEndpointsFromConf(t *testing.T){
-    service := mock_service.New("/mocks")
-    service.PreloadEndpointsFromConf("test/test_mocker.json")
+    conf := mock_service.NewConf("test/test_mocker.json","JSON")
+    service := mock_service.New("/mocks", conf)
 	testReq, err := http.NewRequest("GET", "/mock/conf_test1", nil)
 	if err != nil {
 		t.Fatalf("Expected error to create new request ot be nil but got %s", err)
