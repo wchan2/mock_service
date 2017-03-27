@@ -4,81 +4,71 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 )
 
-var ErrEndpointDoesNotExist = errors.New("Endpoint does not exist")
-var ErrCreatorNotExist = errors.New("Mocker Creator Endpoint does not exist.")
-var ErrUnknownConfType = errors.New("Could not recongize the Configure file.")
+var (
+	ErrEndpointDoesNotExist         = errors.New("Endpoint does not exist")
+	ErrRegistrationEndpointConflict = errors.New("Endpoint conflicts with registration endpoint")
+	ErrEmptyRegistrationEndpoint    = errors.New("Empty registration endpoint provided")
+	ErrEmptyHTTPMethod              = errors.New("Empty HTTP method provided")
+	ErrEmptyEndpoint                = errors.New("Empty endpoint provided")
+)
 
 type MockService struct {
-	mockCreatorEndpoint string
-	mockedEndpoints     map[string]map[string]MockEndpoint
+	mockRegistrationEndpoint string
+	mockedEndpoints          map[string]map[string]MockEndpoint
 	sync.Mutex
 }
 
 type MockEndpoint struct {
-	Method          string            `json:"method" yaml:"method"`
-	Endpoint        string            `json:"endpoint" yaml:"endpoint"`
-	StatusCode      int               `json:"httpStatusCode" yaml:"httpStatusCode"`
-	ResponseBody    string            `json:"responseBody" yaml:"responseBody"`
-	ResponseHeaders map[string]string `json:"responseHeaders" yaml:"responseHeaders"`
+	Method          string            `json:"method" xml:"method"`
+	Endpoint        string            `json:"endpoint" xml:"endpoint"`
+	StatusCode      int               `json:"httpStatusCode" xml:"httpStatusCode"`
+	ResponseBody    string            `json:"responseBody" xml:"responseBody"`
+	ResponseHeaders map[string]string `json:"responseHeaders" xml:"responseHeaders"`
 
 	// TODO:
 	// AcceptHeaders   map[string]string `json:"responseHeaders"`
 	// RequestBody     string            `json:"requestBody"`
 }
 
-type ConfType int
-
-const (
-	UNKNOWN ConfType = iota
-	JSON
-	YAML
-)
-
 type MockServiceConf struct {
-	Path string
-	Type ConfType
+	RegistrationEndpoint string         `json:"regisgtrationEndpoint" xml:"registrationEndpoint"`
+	Endpoints            []MockEndpoint `json:"endpoints" xml:"endpoints"`
 }
 
-func NewConf(confPath string, confType string) *MockServiceConf {
-	c := &MockServiceConf{
-		Path: confPath,
-		Type: UNKNOWN,
+func New(mockRegistrationEndpoint string) (*MockService, error) {
+	if strings.Trim(mockRegistrationEndpoint, " ") == "" {
+		return nil, ErrEmptyRegistrationEndpoint
 	}
-	switch strings.ToUpper(confType) {
-	case "JSON":
-		c.Type = JSON
-	case "YAML":
-		c.Type = YAML
-	default:
-		c.Type = UNKNOWN
-	}
-	return c
+	return &MockService{
+		mockRegistrationEndpoint: mockRegistrationEndpoint,
+		mockedEndpoints:          map[string]map[string]MockEndpoint{},
+	}, nil
 }
 
-type MockEndpointSeries []MockEndpoint
-
-func New(mockCreatorEndpoint string, conf *MockServiceConf) *MockService {
+func NewWithConf(conf *MockServiceConf) (*MockService, error) {
+	if strings.Trim(conf.RegistrationEndpoint, " ") == "" {
+		return nil, ErrEmptyRegistrationEndpoint
+	}
 	m := &MockService{
-		mockCreatorEndpoint: mockCreatorEndpoint,
-		mockedEndpoints:     map[string]map[string]MockEndpoint{},
+		mockRegistrationEndpoint: conf.RegistrationEndpoint,
+		mockedEndpoints:          map[string]map[string]MockEndpoint{},
 	}
-	if "" != strings.TrimSpace(conf.Path) {
-		m.PreloadEndpointsFromConf(conf)
+	if err := m.loadEndpoints(conf.Endpoints); err != nil {
+		return nil, err
 	}
-	return m
+	return m, nil
 }
 
 func (m *MockService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodPost && req.URL.Path == m.mockCreatorEndpoint {
+	// TODO: validate against requests that attempt to re-register the mock registration endpoint
+	if req.Method == http.MethodPost && req.URL.Path == m.mockRegistrationEndpoint {
 		m.serveRegistrationHTTP(w, req)
 		return
 	}
@@ -86,43 +76,22 @@ func (m *MockService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	m.serveMockHTTP(w, req)
 }
 
-func (m *MockService) PreloadEndpointsFromConf(conf *MockServiceConf) (error, bool) {
-	if "" == strings.TrimSpace(m.mockCreatorEndpoint) {
-		return ErrCreatorNotExist, false
-	}
-	fi, err := os.Open(conf.Path)
-	if err != nil {
-		panic(err)
-	}
-	defer fi.Close()
-	fd, _ := ioutil.ReadAll(fi)
-	var series MockEndpointSeries
-	switch conf.Type {
-	case JSON, UNKNOWN:
-		if err := json.Unmarshal(fd, &series); nil != err {
-			log.Fatal("Unable to Unmarshal JSON string %s: %s", string(fd), err)
-			return err, false
+func (m *MockService) loadEndpoints(endpoints []MockEndpoint) error {
+	for i := range endpoints {
+		if err := m.CreateMockEndpoint(endpoints[i]); err != nil {
+			return err
 		}
-	case YAML:
-		if err := yaml.Unmarshal(fd, &series); nil != err {
-			log.Fatal("Unable to Unmarshal YAML string %s: %s", string(fd), err)
-			return err, false
-		}
-	default:
-		log.Fatal("Unable to handle the undefined conf file type: %s", conf.Type)
-		return ErrUnknownConfType, false
 	}
-	fmt.Println("%v", series)
-	for _, endpoint := range series {
-		m.CreateMockEndpoint(endpoint)
-	}
-	return nil, true
+	return nil
 }
 
-func (m *MockService) CreateMockEndpoint(endpoint MockEndpoint) {
-	if "POST" == endpoint.Method && m.mockCreatorEndpoint == endpoint.Endpoint {
-		log.Fatal("Ignore the overwriting for the mock creator endpoint.")
-		return
+func (m *MockService) CreateMockEndpoint(endpoint MockEndpoint) error {
+	if strings.Trim(endpoint.Method, " ") == "" {
+		return ErrEmptyHTTPMethod
+	}
+
+	if strings.Trim(endpoint.Endpoint, " ") == "" {
+		return ErrEmptyEndpoint
 	}
 	m.Lock()
 	if _, ok := m.mockedEndpoints[endpoint.Method]; !ok {
@@ -130,6 +99,7 @@ func (m *MockService) CreateMockEndpoint(endpoint MockEndpoint) {
 	}
 	m.mockedEndpoints[endpoint.Method][endpoint.Endpoint] = endpoint
 	m.Unlock()
+	return nil
 }
 
 func (m *MockService) LookupEndpoint(method, path string) (*MockEndpoint, error) {
@@ -161,7 +131,17 @@ func (m *MockService) serveRegistrationHTTP(w http.ResponseWriter, req *http.Req
 		log.Printf("Unable to Unmarshal request body %s: %s", reqPayload, err)
 		return
 	}
-	m.CreateMockEndpoint(endpointRequest)
+	if err := m.CreateMockEndpoint(endpointRequest); err != nil {
+		switch err {
+		case ErrEmptyEndpoint:
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, err)
+			return
+		case ErrEmptyHTTPMethod:
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, err)
+		}
+	}
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -169,6 +149,7 @@ func (m *MockService) serveMockHTTP(w http.ResponseWriter, req *http.Request) {
 	endpoint, err := m.LookupEndpoint(req.Method, req.URL.Path)
 	if err == ErrEndpointDoesNotExist {
 		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprint(w, err)
 		return
 	} else if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

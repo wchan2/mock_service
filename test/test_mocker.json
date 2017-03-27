@@ -1,4 +1,0 @@
-[
-    {"method":"GET", "endpoint":"/mock/conf_test1", "httpStatusCode":200, "responseBody": "Configurable mocker", "responseHeaders": {"Context Type":"json"}},
-    {"method":"GET", "endpoint":"/mock/conf_test2", "httpStatusCode":200, "responseBody": "Configurable mocker", "responseHeaders": {"Context Type":"json"}}
-]
