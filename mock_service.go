@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-    "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -36,31 +36,32 @@ type MockEndpoint struct {
 }
 
 type ConfType int
+
 const (
-    UNKNOWN ConfType = iota
-    JSON
-    YAML
+	UNKNOWN ConfType = iota
+	JSON
+	YAML
 )
 
 type MockServiceConf struct {
-    Path string
-    Type ConfType
+	Path string
+	Type ConfType
 }
 
 func NewConf(confPath string, confType string) *MockServiceConf {
-    c := &MockServiceConf{
-        Path: confPath,
-        Type: UNKNOWN,
-    }
-    switch strings.ToUpper(confType) {
-    case "JSON":
-        c.Type = JSON
-    case "YAML":
-        c.Type = YAML
-    default:
-        c.Type = UNKNOWN
-    }
-    return c
+	c := &MockServiceConf{
+		Path: confPath,
+		Type: UNKNOWN,
+	}
+	switch strings.ToUpper(confType) {
+	case "JSON":
+		c.Type = JSON
+	case "YAML":
+		c.Type = YAML
+	default:
+		c.Type = UNKNOWN
+	}
+	return c
 }
 
 type MockEndpointSeries []MockEndpoint
@@ -70,9 +71,9 @@ func New(mockCreatorEndpoint string, conf *MockServiceConf) *MockService {
 		mockCreatorEndpoint: mockCreatorEndpoint,
 		mockedEndpoints:     map[string]map[string]MockEndpoint{},
 	}
-    if "" != strings.TrimSpace(conf.Path) {
-        m.PreloadEndpointsFromConf(conf)
-    }
+	if "" != strings.TrimSpace(conf.Path) {
+		m.PreloadEndpointsFromConf(conf)
+	}
 	return m
 }
 
@@ -96,21 +97,21 @@ func (m *MockService) PreloadEndpointsFromConf(conf *MockServiceConf) (error, bo
 	defer fi.Close()
 	fd, _ := ioutil.ReadAll(fi)
 	var series MockEndpointSeries
-    switch conf.Type {
-    case JSON, UNKNOWN:
-        if err := json.Unmarshal(fd, &series); nil != err {
-		    log.Fatal("Unable to Unmarshal JSON string %s: %s", string(fd), err)
-		    return err, false
-	    }
-    case YAML:
-        if err := yaml.Unmarshal(fd, &series); nil != err {
-		    log.Fatal("Unable to Unmarshal YAML string %s: %s", string(fd), err)
-		    return err, false
-	    }
-    default:
-        log.Fatal("Unable to handle the undefined conf file type: %s", conf.Type)
-        return ErrUnknownConfType, false
-    }
+	switch conf.Type {
+	case JSON, UNKNOWN:
+		if err := json.Unmarshal(fd, &series); nil != err {
+			log.Fatal("Unable to Unmarshal JSON string %s: %s", string(fd), err)
+			return err, false
+		}
+	case YAML:
+		if err := yaml.Unmarshal(fd, &series); nil != err {
+			log.Fatal("Unable to Unmarshal YAML string %s: %s", string(fd), err)
+			return err, false
+		}
+	default:
+		log.Fatal("Unable to handle the undefined conf file type: %s", conf.Type)
+		return ErrUnknownConfType, false
+	}
 	for _, endpoint := range series {
 		m.CreateMockEndpoint(endpoint)
 	}
@@ -122,7 +123,7 @@ func (m *MockService) CreateMockEndpoint(endpoint MockEndpoint) {
 		log.Fatal("Ignore the overwriting for the mock creator endpoint.")
 		return
 	}
-    m.Lock()
+	m.Lock()
 	if _, ok := m.mockedEndpoints[endpoint.Method]; !ok {
 		m.mockedEndpoints[endpoint.Method] = map[string]MockEndpoint{}
 	}
