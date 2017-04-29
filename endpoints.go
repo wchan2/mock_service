@@ -58,3 +58,12 @@ func (e *Endpoints) Create(endpoint *MockEndpoint) error {
 
 	return nil
 }
+
+func (m *Endpoints) Load(endpoints []*MockEndpoint) error {
+	for i := range endpoints {
+		if err := m.Create(endpoints[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
