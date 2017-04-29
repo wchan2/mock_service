@@ -8,38 +8,21 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"sync"
 )
 
 var (
-	ErrEndpointDoesNotExist         = errors.New("Endpoint does not exist")
 	ErrRegistrationEndpointConflict = errors.New("Endpoint conflicts with registration endpoint")
 	ErrEmptyRegistrationEndpoint    = errors.New("Empty registration endpoint provided")
-	ErrEmptyHTTPMethod              = errors.New("Empty HTTP method provided")
-	ErrEmptyEndpoint                = errors.New("Empty endpoint provided")
 )
 
 type MockService struct {
 	mockRegistrationEndpoint string
-	mockedEndpoints          map[string]map[string]MockEndpoint
-	sync.Mutex
-}
-
-type MockEndpoint struct {
-	Method          string            `json:"method" xml:"method"`
-	Endpoint        string            `json:"endpoint" xml:"endpoint"`
-	StatusCode      int               `json:"httpStatusCode" xml:"httpStatusCode"`
-	ResponseBody    string            `json:"responseBody" xml:"responseBody"`
-	ResponseHeaders map[string]string `json:"responseHeaders" xml:"responseHeaders"`
-
-	// TODO:
-	// AcceptHeaders   map[string]string `json:"responseHeaders"`
-	// RequestBody     string            `json:"requestBody"`
+	mockedEndpoints          *Endpoints
 }
 
 type MockServiceConf struct {
-	RegistrationEndpoint string         `json:"regisgtrationEndpoint" xml:"registrationEndpoint"`
-	Endpoints            []MockEndpoint `json:"endpoints" xml:"endpoints"`
+	RegistrationEndpoint string          `json:"regisgtrationEndpoint" xml:"registrationEndpoint"`
+	Endpoints            []*MockEndpoint `json:"endpoints" xml:"endpoints"`
 }
 
 func New(mockRegistrationEndpoint string) (*MockService, error) {
@@ -48,7 +31,7 @@ func New(mockRegistrationEndpoint string) (*MockService, error) {
 	}
 	return &MockService{
 		mockRegistrationEndpoint: mockRegistrationEndpoint,
-		mockedEndpoints:          map[string]map[string]MockEndpoint{},
+		mockedEndpoints:          NewEndpoints(),
 	}, nil
 }
 
@@ -58,7 +41,7 @@ func NewWithConf(conf *MockServiceConf) (*MockService, error) {
 	}
 	m := &MockService{
 		mockRegistrationEndpoint: conf.RegistrationEndpoint,
-		mockedEndpoints:          map[string]map[string]MockEndpoint{},
+		mockedEndpoints:          NewEndpoints(),
 	}
 	if err := m.loadEndpoints(conf.Endpoints); err != nil {
 		return nil, err
@@ -69,48 +52,23 @@ func NewWithConf(conf *MockServiceConf) (*MockService, error) {
 func (m *MockService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// TODO: validate against requests that attempt to re-register the mock registration endpoint
 	if req.Method == http.MethodPost && req.URL.Path == m.mockRegistrationEndpoint {
-		m.serveRegistrationHTTP(w, req)
+		m.RegisterMockEndpoint(w, req)
 		return
 	}
 
-	m.serveMockHTTP(w, req)
+	m.ServeMockEndpoint(w, req)
 }
 
-func (m *MockService) loadEndpoints(endpoints []MockEndpoint) error {
+func (m *MockService) loadEndpoints(endpoints []*MockEndpoint) error {
 	for i := range endpoints {
-		if err := m.CreateMockEndpoint(endpoints[i]); err != nil {
+		if err := m.mockedEndpoints.Create(endpoints[i]); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (m *MockService) CreateMockEndpoint(endpoint MockEndpoint) error {
-	if strings.Trim(endpoint.Method, " ") == "" {
-		return ErrEmptyHTTPMethod
-	}
-
-	if strings.Trim(endpoint.Endpoint, " ") == "" {
-		return ErrEmptyEndpoint
-	}
-	m.Lock()
-	if _, ok := m.mockedEndpoints[endpoint.Method]; !ok {
-		m.mockedEndpoints[endpoint.Method] = map[string]MockEndpoint{}
-	}
-	m.mockedEndpoints[endpoint.Method][endpoint.Endpoint] = endpoint
-	m.Unlock()
-	return nil
-}
-
-func (m *MockService) LookupEndpoint(method, path string) (*MockEndpoint, error) {
-	mockEndpoint, ok := m.mockedEndpoints[method][path]
-	if !ok {
-		return nil, ErrEndpointDoesNotExist
-	}
-	return &mockEndpoint, nil
-}
-
-func (m *MockService) serveRegistrationHTTP(w http.ResponseWriter, req *http.Request) {
+func (m *MockService) RegisterMockEndpoint(w http.ResponseWriter, req *http.Request) {
 	if req.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "Registering an endpoint requires a payload")
@@ -131,7 +89,8 @@ func (m *MockService) serveRegistrationHTTP(w http.ResponseWriter, req *http.Req
 		log.Printf("Unable to Unmarshal request body %s: %s", reqPayload, err)
 		return
 	}
-	if err := m.CreateMockEndpoint(endpointRequest); err != nil {
+
+	if err := m.mockedEndpoints.Create(&endpointRequest); err != nil {
 		switch err {
 		case ErrEmptyEndpoint:
 			w.WriteHeader(http.StatusBadRequest)
@@ -145,8 +104,8 @@ func (m *MockService) serveRegistrationHTTP(w http.ResponseWriter, req *http.Req
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (m *MockService) serveMockHTTP(w http.ResponseWriter, req *http.Request) {
-	endpoint, err := m.LookupEndpoint(req.Method, req.URL.Path)
+func (m *MockService) ServeMockEndpoint(w http.ResponseWriter, req *http.Request) {
+	endpoint, err := m.mockedEndpoints.Lookup(req.Method, req.URL.Path)
 	if err == ErrEndpointDoesNotExist {
 		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprint(w, err)

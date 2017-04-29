@@ -75,7 +75,7 @@ func TestServeMockHTTP_MockCreated(t *testing.T) {
 func TestServeMockHTTP_MockCreatedWithConf(t *testing.T) {
 	conf := mock_service.MockServiceConf{
 		RegistrationEndpoint: "/mocks",
-		Endpoints: []mock_service.MockEndpoint{
+		Endpoints: []*mock_service.MockEndpoint{
 			{
 				Method:          http.MethodPost,
 				Endpoint:        "/mock/test",
@@ -174,7 +174,7 @@ func TestMockService_RegisterEmptyMethod(t *testing.T) {
 func TestNewWithConf_EmptyRegisterEndpointInConf(t *testing.T) {
 	conf := mock_service.MockServiceConf{
 		RegistrationEndpoint: "",
-		Endpoints: []mock_service.MockEndpoint{
+		Endpoints: []*mock_service.MockEndpoint{
 			{
 				Method:          http.MethodPost,
 				Endpoint:        "/mock/test",
@@ -197,7 +197,7 @@ func TestNewWithConf_EmptyRegisterEndpointInConf(t *testing.T) {
 func TestNewWithConf_EmptyHTTPMethod(t *testing.T) {
 	conf := mock_service.MockServiceConf{
 		RegistrationEndpoint: "/mocks",
-		Endpoints: []mock_service.MockEndpoint{
+		Endpoints: []*mock_service.MockEndpoint{
 			{
 				Method:          " ",
 				Endpoint:        "/mock/test",
@@ -220,7 +220,7 @@ func TestNewWithConf_EmptyHTTPMethod(t *testing.T) {
 func TestNewWithConf_EmptyEndpoint(t *testing.T) {
 	conf := mock_service.MockServiceConf{
 		RegistrationEndpoint: "/mocks",
-		Endpoints: []mock_service.MockEndpoint{
+		Endpoints: []*mock_service.MockEndpoint{
 			{
 				Method:          http.MethodPost,
 				Endpoint:        " ",
