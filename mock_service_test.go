@@ -119,7 +119,7 @@ func TestServeMockHTTP_MockEndpointDoesNotExist(t *testing.T) {
 		t.Errorf("Expected %d status but got %d", http.StatusNotFound, recorder.Code)
 	}
 
-	if recorder.Body.String() != mock_service.ErrEndpointDoesNotExist.Error() {
+	if recorder.Body.String() != mock_service.ErrEndpointDoesNotExist.Error()+"\n" {
 		t.Errorf(`Expected "%s" response body but got "%s"`, mock_service.ErrEndpointDoesNotExist, recorder.Body.String())
 	}
 }
@@ -148,7 +148,7 @@ func TestMockService_RegisterEmptyEndpoint(t *testing.T) {
 		t.Errorf("Expected %d status but got %d", http.StatusBadRequest, recorder.Code)
 	}
 
-	if recorder.Body.String() != mock_service.ErrEmptyEndpoint.Error() {
+	if recorder.Body.String() != mock_service.ErrEmptyEndpoint.Error()+"\n" {
 		t.Errorf(`Expected "%s" response body but got "%s"`, mock_service.ErrEmptyEndpoint, recorder.Body.String())
 	}
 }
@@ -166,7 +166,7 @@ func TestMockService_RegisterEmptyMethod(t *testing.T) {
 		t.Errorf("Expected %d status but got %d", http.StatusBadRequest, recorder.Code)
 	}
 
-	if recorder.Body.String() != mock_service.ErrEmptyHTTPMethod.Error() {
+	if recorder.Body.String() != mock_service.ErrEmptyHTTPMethod.Error()+"\n" {
 		t.Errorf(`Expected "%s" response body but got "%s"`, mock_service.ErrEmptyHTTPMethod, recorder.Body.String())
 	}
 }
