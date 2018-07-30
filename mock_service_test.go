@@ -1,4 +1,4 @@
-package mock_service_test
+package mockservice_test
 
 import (
 	"io/ioutil"
@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wchan2/mock_service"
+	"github.com/wchan2/mockservice"
 )
 
 const (
@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestServeEndpointRegistration_Success(t *testing.T) {
-	service, err := mock_service.New("/mocks")
+	service, err := mockservice.New("/mocks")
 	if err != nil {
 		t.Errorf("Expected err in creating new mock service to be nil but got %s", err)
 	}
@@ -36,12 +36,12 @@ func TestServeEndpointRegistration_Success(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	service.ServeHTTP(recorder, req)
 	if recorder.Code != http.StatusCreated {
-		t.Errorf("Expected %i status but got %i", http.StatusCreated, recorder.Code)
+		t.Errorf("Expected %d status but got %d", http.StatusCreated, recorder.Code)
 	}
 }
 
 func TestServeMockHTTP_MockCreated(t *testing.T) {
-	service, err := mock_service.New("/mocks")
+	service, err := mockservice.New("/mocks")
 	if err != nil {
 		t.Errorf("Expected err in creating new mock service to be nil but got %s", err)
 	}
@@ -73,9 +73,9 @@ func TestServeMockHTTP_MockCreated(t *testing.T) {
 }
 
 func TestServeMockHTTP_MockCreatedWithConf(t *testing.T) {
-	conf := mock_service.MockServiceConf{
+	conf := mockservice.Conf{
 		RegistrationEndpoint: "/mocks",
-		Endpoints: []*mock_service.MockEndpoint{
+		Endpoints: []*mockservice.MockEndpoint{
 			{
 				Method:          http.MethodPost,
 				Endpoint:        "/mock/test",
@@ -85,7 +85,7 @@ func TestServeMockHTTP_MockCreatedWithConf(t *testing.T) {
 			},
 		},
 	}
-	service, err := mock_service.NewWithConf(&conf)
+	service, err := mockservice.NewWithConf(&conf)
 	if err != nil {
 		t.Errorf("Expected err to be nil when creating the mock service but got %s", err)
 	}
@@ -107,7 +107,7 @@ func TestServeMockHTTP_MockCreatedWithConf(t *testing.T) {
 }
 
 func TestServeMockHTTP_MockEndpointDoesNotExist(t *testing.T) {
-	service, err := mock_service.New("/mocks")
+	service, err := mockservice.New("/mocks")
 	if err != nil {
 		t.Errorf("Expected err in creating new mock service to be nil but got %s", err)
 	}
@@ -119,15 +119,15 @@ func TestServeMockHTTP_MockEndpointDoesNotExist(t *testing.T) {
 		t.Errorf("Expected %d status but got %d", http.StatusNotFound, recorder.Code)
 	}
 
-	if recorder.Body.String() != mock_service.ErrEndpointDoesNotExist.Error()+"\n" {
-		t.Errorf(`Expected "%s" response body but got "%s"`, mock_service.ErrEndpointDoesNotExist, recorder.Body.String())
+	if recorder.Body.String() != mockservice.ErrEndpointDoesNotExist.Error()+"\n" {
+		t.Errorf(`Expected "%s" response body but got "%s"`, mockservice.ErrEndpointDoesNotExist, recorder.Body.String())
 	}
 }
 
 func TestMockService_EmptyRegistrationEndpoint(t *testing.T) {
-	service, err := mock_service.New(" ")
-	if err != mock_service.ErrEmptyRegistrationEndpoint {
-		t.Errorf(`Expected err to be "%s" but received "%s"`, mock_service.ErrEmptyRegistrationEndpoint, err)
+	service, err := mockservice.New(" ")
+	if err != mockservice.ErrEmptyRegistrationEndpoint {
+		t.Errorf(`Expected err to be "%s" but received "%s"`, mockservice.ErrEmptyRegistrationEndpoint, err)
 	}
 
 	if service != nil {
@@ -136,7 +136,7 @@ func TestMockService_EmptyRegistrationEndpoint(t *testing.T) {
 }
 
 func TestMockService_RegisterEmptyEndpoint(t *testing.T) {
-	service, err := mock_service.New("/mocks")
+	service, err := mockservice.New("/mocks")
 	if err != nil {
 		t.Errorf("Expected err in creating new mock service to be nil but got %s", err)
 	}
@@ -148,13 +148,13 @@ func TestMockService_RegisterEmptyEndpoint(t *testing.T) {
 		t.Errorf("Expected %d status but got %d", http.StatusBadRequest, recorder.Code)
 	}
 
-	if recorder.Body.String() != mock_service.ErrEmptyEndpoint.Error()+"\n" {
-		t.Errorf(`Expected "%s" response body but got "%s"`, mock_service.ErrEmptyEndpoint, recorder.Body.String())
+	if recorder.Body.String() != mockservice.ErrEmptyEndpoint.Error()+"\n" {
+		t.Errorf(`Expected "%s" response body but got "%s"`, mockservice.ErrEmptyEndpoint, recorder.Body.String())
 	}
 }
 
 func TestMockService_RegisterEmptyMethod(t *testing.T) {
-	service, err := mock_service.New("/mocks")
+	service, err := mockservice.New("/mocks")
 	if err != nil {
 		t.Errorf("Expected err in creating new mock service to be nil but got %s", err)
 	}
@@ -166,15 +166,15 @@ func TestMockService_RegisterEmptyMethod(t *testing.T) {
 		t.Errorf("Expected %d status but got %d", http.StatusBadRequest, recorder.Code)
 	}
 
-	if recorder.Body.String() != mock_service.ErrEmptyHTTPMethod.Error()+"\n" {
-		t.Errorf(`Expected "%s" response body but got "%s"`, mock_service.ErrEmptyHTTPMethod, recorder.Body.String())
+	if recorder.Body.String() != mockservice.ErrEmptyHTTPMethod.Error()+"\n" {
+		t.Errorf(`Expected "%s" response body but got "%s"`, mockservice.ErrEmptyHTTPMethod, recorder.Body.String())
 	}
 }
 
 func TestNewWithConf_EmptyRegisterEndpointInConf(t *testing.T) {
-	conf := mock_service.MockServiceConf{
+	conf := mockservice.Conf{
 		RegistrationEndpoint: "",
-		Endpoints: []*mock_service.MockEndpoint{
+		Endpoints: []*mockservice.MockEndpoint{
 			{
 				Method:          http.MethodPost,
 				Endpoint:        "/mock/test",
@@ -184,9 +184,9 @@ func TestNewWithConf_EmptyRegisterEndpointInConf(t *testing.T) {
 			},
 		},
 	}
-	service, err := mock_service.NewWithConf(&conf)
-	if err != mock_service.ErrEmptyRegistrationEndpoint {
-		t.Errorf(`Expected err to be "%s" but received "%s"`, mock_service.ErrEmptyRegistrationEndpoint, err)
+	service, err := mockservice.NewWithConf(&conf)
+	if err != mockservice.ErrEmptyRegistrationEndpoint {
+		t.Errorf(`Expected err to be "%s" but received "%s"`, mockservice.ErrEmptyRegistrationEndpoint, err)
 	}
 
 	if service != nil {
@@ -195,9 +195,9 @@ func TestNewWithConf_EmptyRegisterEndpointInConf(t *testing.T) {
 }
 
 func TestNewWithConf_EmptyHTTPMethod(t *testing.T) {
-	conf := mock_service.MockServiceConf{
+	conf := mockservice.Conf{
 		RegistrationEndpoint: "/mocks",
-		Endpoints: []*mock_service.MockEndpoint{
+		Endpoints: []*mockservice.MockEndpoint{
 			{
 				Method:          " ",
 				Endpoint:        "/mock/test",
@@ -207,9 +207,9 @@ func TestNewWithConf_EmptyHTTPMethod(t *testing.T) {
 			},
 		},
 	}
-	service, err := mock_service.NewWithConf(&conf)
-	if err != mock_service.ErrEmptyHTTPMethod {
-		t.Errorf(`Expected "%s" error when creating a mock service with empty http method in the configuration but got %v`, mock_service.ErrEmptyHTTPMethod, err)
+	service, err := mockservice.NewWithConf(&conf)
+	if err != mockservice.ErrEmptyHTTPMethod {
+		t.Errorf(`Expected "%s" error when creating a mock service with empty http method in the configuration but got %v`, mockservice.ErrEmptyHTTPMethod, err)
 	}
 
 	if service != nil {
@@ -218,9 +218,9 @@ func TestNewWithConf_EmptyHTTPMethod(t *testing.T) {
 }
 
 func TestNewWithConf_EmptyEndpoint(t *testing.T) {
-	conf := mock_service.MockServiceConf{
+	conf := mockservice.Conf{
 		RegistrationEndpoint: "/mocks",
-		Endpoints: []*mock_service.MockEndpoint{
+		Endpoints: []*mockservice.MockEndpoint{
 			{
 				Method:          http.MethodPost,
 				Endpoint:        " ",
@@ -230,9 +230,9 @@ func TestNewWithConf_EmptyEndpoint(t *testing.T) {
 			},
 		},
 	}
-	service, err := mock_service.NewWithConf(&conf)
-	if err != mock_service.ErrEmptyEndpoint {
-		t.Errorf(`Expected "%s" error when creating a mock service with empty endpoint in the configuration but got %v`, mock_service.ErrEmptyEndpoint, err)
+	service, err := mockservice.NewWithConf(&conf)
+	if err != mockservice.ErrEmptyEndpoint {
+		t.Errorf(`Expected "%s" error when creating a mock service with empty endpoint in the configuration but got %v`, mockservice.ErrEmptyEndpoint, err)
 	}
 
 	if service != nil {
@@ -241,7 +241,7 @@ func TestNewWithConf_EmptyEndpoint(t *testing.T) {
 }
 
 func TestServeEndpointRegistration_NilReqBody(t *testing.T) {
-	service, err := mock_service.New("/mocks")
+	service, err := mockservice.New("/mocks")
 	if err != nil {
 		t.Errorf("Expected err in creating new mock service to be nil but got %s", err)
 	}
@@ -266,7 +266,7 @@ func TestServeEndpointRegistration_NilReqBody(t *testing.T) {
 }
 
 func TestServeEndpointRegistration_InvalidJSONReqBody(t *testing.T) {
-	service, err := mock_service.New("/mocks")
+	service, err := mockservice.New("/mocks")
 	if err != nil {
 		t.Errorf("Expected err in creating new mock service to be nil but got %s", err)
 	}

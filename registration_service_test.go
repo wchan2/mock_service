@@ -1,4 +1,4 @@
-package mock_service_test
+package mockservice_test
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/wchan2/mock_service"
+	"github.com/wchan2/mockservice"
 
 	"testing"
 )
@@ -25,8 +25,8 @@ func TestRegistrationService_ServeHTTP(t *testing.T) {
 			t.Errorf("Expected new request error to be nil but got %s", err)
 		}
 
-		endpoints := mock_service.NewEndpoints()
-		svc := mock_service.NewRegistrationService(endpoints)
+		endpoints := mockservice.NewEndpoints()
+		svc := mockservice.NewRegistrationService(endpoints)
 		recorder := httptest.NewRecorder()
 		svc.ServeHTTP(recorder, req)
 		if recorder.Code != http.StatusBadRequest {
@@ -40,8 +40,8 @@ func TestRegistrationService_ServeHTTP(t *testing.T) {
 			t.Errorf("Expected new request error to be nil but got %s", err)
 		}
 
-		endpoints := mock_service.NewEndpoints()
-		svc := mock_service.NewRegistrationService(endpoints)
+		endpoints := mockservice.NewEndpoints()
+		svc := mockservice.NewRegistrationService(endpoints)
 		recorder := httptest.NewRecorder()
 		svc.ServeHTTP(recorder, req)
 		if recorder.Code != http.StatusBadRequest {
@@ -55,8 +55,8 @@ func TestRegistrationService_ServeHTTP(t *testing.T) {
 			t.Errorf("Expected new request error to be nil but got %s", err)
 		}
 
-		endpoints := mock_service.NewEndpoints()
-		svc := mock_service.NewRegistrationService(endpoints)
+		endpoints := mockservice.NewEndpoints()
+		svc := mockservice.NewRegistrationService(endpoints)
 		recorder := httptest.NewRecorder()
 		svc.ServeHTTP(recorder, req)
 		if recorder.Code != http.StatusInternalServerError {
@@ -78,8 +78,8 @@ func TestRegistrationService_ServeHTTP(t *testing.T) {
 			t.Errorf("Expected new request error to be nil but got %s", err)
 		}
 
-		endpoints := mock_service.NewEndpoints()
-		svc := mock_service.NewRegistrationService(endpoints)
+		endpoints := mockservice.NewEndpoints()
+		svc := mockservice.NewRegistrationService(endpoints)
 		recorder := httptest.NewRecorder()
 		svc.ServeHTTP(recorder, req)
 		if recorder.Code != http.StatusBadRequest {
@@ -101,8 +101,8 @@ func TestRegistrationService_ServeHTTP(t *testing.T) {
 			t.Errorf("Expected new request error to be nil but got %s", err)
 		}
 
-		endpoints := mock_service.NewEndpoints()
-		svc := mock_service.NewRegistrationService(endpoints)
+		endpoints := mockservice.NewEndpoints()
+		svc := mockservice.NewRegistrationService(endpoints)
 		recorder := httptest.NewRecorder()
 		svc.ServeHTTP(recorder, req)
 		if recorder.Code != http.StatusBadRequest {
