@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/wchan2/mockservice"
+	"github.com/wchan2/mock_service"
 )
 
 func main() {

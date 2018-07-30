@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/wchan2/mockservice"
+	"github.com/wchan2/mock_service"
 )
 
 func TestLookup(t *testing.T) {

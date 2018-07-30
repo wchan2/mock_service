@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/wchan2/mockservice"
+	"github.com/wchan2/mock_service"
 )
 
 func TestEndpointService_ServeHTTP(t *testing.T) {

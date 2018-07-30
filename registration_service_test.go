@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/wchan2/mockservice"
+	"github.com/wchan2/mock_service"
 
 	"testing"
 )

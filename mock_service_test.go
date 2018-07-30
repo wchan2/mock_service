@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wchan2/mockservice"
+	"github.com/wchan2/mock_service"
 )
 
 const (
