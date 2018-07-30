@@ -1,4 +1,4 @@
-# mock_service
+# mockservice
 
 Mock HTTP Service that can register endpoints and respective responses.
 

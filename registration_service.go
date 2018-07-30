@@ -1,4 +1,4 @@
-package mock_service
+package mockservice
 
 import (
 	"encoding/json"
@@ -8,14 +8,17 @@ import (
 	"net/http"
 )
 
+// RegistrationService allows endpoints to be registered
 type RegistrationService struct {
 	mockedEndpoints *Endpoints
 }
 
+// NewRegistrationService creates a registration service to support the registering of mock endpoints through HTTP
 func NewRegistrationService(endpoints *Endpoints) *RegistrationService {
 	return &RegistrationService{mockedEndpoints: endpoints}
 }
 
+// ServeHTTP creates mock endpoints via HTTP requests
 func (m *RegistrationService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)

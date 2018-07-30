@@ -1,4 +1,4 @@
-package mock_service_test
+package mockservice_test
 
 import (
 	"net/http"
@@ -6,21 +6,20 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/wchan2/mock_service"
+	"github.com/wchan2/mockservice"
 )
 
 func TestEndpointService_ServeHTTP(t *testing.T) {
-
-	mockEndpoint := mock_service.MockEndpoint{
+	mockEndpoint := mockservice.MockEndpoint{
 		Method:          http.MethodGet,
 		Endpoint:        "/test",
 		StatusCode:      http.StatusOK,
 		ResponseBody:    "test",
 		ResponseHeaders: map[string]string{"foo": "bar"},
 	}
-	endpoints := mock_service.NewEndpoints()
+	endpoints := mockservice.NewEndpoints()
 	endpoints.Create(&mockEndpoint)
-	svc := mock_service.NewEndpointService(endpoints)
+	svc := mockservice.NewEndpointService(endpoints)
 
 	t.Run("Endpoint_found", func(t *testing.T) {
 		recorder := httptest.NewRecorder()

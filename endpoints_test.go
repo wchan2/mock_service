@@ -1,21 +1,21 @@
-package mock_service_test
+package mockservice_test
 
 import (
 	"net/http"
 	"testing"
 
-	"github.com/wchan2/mock_service"
+	"github.com/wchan2/mockservice"
 )
 
 func TestLookup(t *testing.T) {
-	mockEndpoint := &mock_service.MockEndpoint{
+	mockEndpoint := &mockservice.MockEndpoint{
 		Method:          http.MethodPost,
 		Endpoint:        "/test/endpoint",
 		StatusCode:      http.StatusOK,
 		ResponseBody:    "sample response",
 		ResponseHeaders: map[string]string{},
 	}
-	endpoints := mock_service.NewEndpoints()
+	endpoints := mockservice.NewEndpoints()
 	if err := endpoints.Create(mockEndpoint); err != nil {
 		t.Errorf("Expected creating endpoint to return a nil error but got %s", err)
 	}
@@ -31,44 +31,44 @@ func TestLookup(t *testing.T) {
 }
 
 func TestLookupNonExistentEndpoint(t *testing.T) {
-	endpoints := mock_service.NewEndpoints()
+	endpoints := mockservice.NewEndpoints()
 
 	ep, err := endpoints.Lookup("POST", "/does/not/exist")
 	if ep != nil {
-		t.Errorf("Expected nil endpoint but got %s", ep)
+		t.Errorf("Expected nil endpoint but got %+v", ep)
 	}
 
-	if err != mock_service.ErrEndpointDoesNotExist {
-		t.Errorf("Expected %s error but got %s", mock_service.ErrEndpointDoesNotExist, err)
+	if err != mockservice.ErrEndpointDoesNotExist {
+		t.Errorf("Expected %s error but got %s", mockservice.ErrEndpointDoesNotExist, err)
 	}
 }
 
 func TestCreateErrEmptyHTTPMethod(t *testing.T) {
-	mockEndpoint := &mock_service.MockEndpoint{
+	mockEndpoint := &mockservice.MockEndpoint{
 		Method:          " ",
 		Endpoint:        "/test/endpoint",
 		StatusCode:      http.StatusOK,
 		ResponseBody:    "sample response",
 		ResponseHeaders: map[string]string{},
 	}
-	endpoints := mock_service.NewEndpoints()
+	endpoints := mockservice.NewEndpoints()
 
-	if err := endpoints.Create(mockEndpoint); err != mock_service.ErrEmptyHTTPMethod {
-		t.Errorf("Expected %s error but got %s", mock_service.ErrEmptyHTTPMethod, err)
+	if err := endpoints.Create(mockEndpoint); err != mockservice.ErrEmptyHTTPMethod {
+		t.Errorf("Expected %s error but got %s", mockservice.ErrEmptyHTTPMethod, err)
 	}
 }
 
 func TestCreateErrEmptyEndpoint(t *testing.T) {
-	mockEndpoint := &mock_service.MockEndpoint{
+	mockEndpoint := &mockservice.MockEndpoint{
 		Method:          "POST",
 		Endpoint:        " ",
 		StatusCode:      http.StatusOK,
 		ResponseBody:    "sample response",
 		ResponseHeaders: map[string]string{},
 	}
-	endpoints := mock_service.NewEndpoints()
+	endpoints := mockservice.NewEndpoints()
 
-	if err := endpoints.Create(mockEndpoint); err != mock_service.ErrEmptyEndpoint {
-		t.Errorf("Expected %s error but got %s", mock_service.ErrEmptyEndpoint, err)
+	if err := endpoints.Create(mockEndpoint); err != mockservice.ErrEmptyEndpoint {
+		t.Errorf("Expected %s error but got %s", mockservice.ErrEmptyEndpoint, err)
 	}
 }
