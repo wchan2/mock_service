@@ -11,6 +11,9 @@ Mock HTTP Service that can register mock endpoints and respond with respective r
 
 - Registering endpoints that can send callbacks hooks back to your service
 - Registering endpoints that return specific responses based on timing; used to mock APIs that require polling to keep on top of statuses
+- Client SDKs to create mock endpoints and the responses in the mock service for testing purposes
+- YAML support for simplified configuration files
+- Dockerfile and sample docker-compose file that can be used with services under test
 
 ## Examples
 
